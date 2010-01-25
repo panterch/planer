@@ -1,0 +1,17 @@
+html, body{
+  margin:0px;
+  padding:0px;
+  height:100%;
+  overflow:hidden;
+}	
+#filter {
+  position: fixed;
+  bottom: 0px;
+  width: 400px;
+  height: 50px;
+  background-color: #CCCCCC;
+}
+
+#filter label {
+  padding: 10px;
+}
