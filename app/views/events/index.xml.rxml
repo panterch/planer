@@ -1,0 +1,22 @@
+xml.instruct! :xml, :version=>"1.0" 
+
+xml.data do
+  @events.each do |event|
+    xml.event( :id =>    event.id ) do
+        xml.text        "#{event.person}\n#{event.task}"
+        #
+        # we get '2009-12-16 14:00' from dhtmlxScheduler,
+        # so we also send '2009-12-16 14:00'. See
+        # app/controllers/events_controller.rb for the
+        # ingress part
+        #
+        xml.start_date   event.start.strftime('%F %H:%M')
+        xml.end_date     event.end.strftime('%F %H:%M')
+        xml.rec_type     event.rec_type
+        xml.event_length event.event_length
+        xml.event_pid    event.event_pid
+        xml.person       event.person
+        xml.task         event.task 
+    end
+  end
+end

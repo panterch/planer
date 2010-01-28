@@ -100,6 +100,8 @@ function init_scheduler() {
   scheduler.config.first_hour =  8;
   scheduler.config.last_hour  = 22;
   scheduler.config.time_step  = 30;
+  scheduler.config.xml_date="%Y-%m-%d %H:%i";
+
   scheduler.config.start_on_monday = true;
 
   scheduler.config.icons_select=["icon_details","icon_delete"]
@@ -126,14 +128,10 @@ function init_scheduler() {
 }
 
 function load_data() {
-  // demo data
-  // people.each(function(person) {
-  //   scheduler.addEvent({ start_date:new Date(2010,0,21,9,0), end_date:new Date(2010,0,21,11,0), person:person, task:'' });
-  //   scheduler.addEvent({ start_date:new Date(2010,0,21,12,0), end_date:new Date(2010,0,21,17,0), person:person, task:'' });
-  // });
-  // var dp = new dataProcessor("/events.xml");
-  // dp.init(scheduler);
-  // dp.setTransactionMode("POST",false);
+  scheduler.load("/events.xml");
+  var dp = new dataProcessor("/events.xml");
+  dp.init(scheduler);
+  dp.setTransactionMode("POST",false);
 
 
 }
