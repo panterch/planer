@@ -4,14 +4,49 @@ html, body{
   height:100%;
   overflow:hidden;
 }	
-#filter {
-  position: fixed;
-  bottom: 0px;
-  width: 400px;
-  height: 50px;
-  background-color: #CCCCCC;
+
+.dhx_cal_container,
+.dhx_cal_event div 
+{
+  font-family: Helvetica, sans;
 }
 
-#filter label {
-  padding: 10px;
+#control {
+  position: fixed;
+  bottom: 0px;
+  background-color: white;
 }
+
+#control > div {
+  clear: both;
+}
+
+#control label {
+  display: block;
+  width: 60px;
+  height: 20px;
+  float: left;
+  padding-left: 2px;
+}
+
+#control dt, #control dd {
+  float: left;
+  margin: 0;
+  width: 29px;
+  height: 20px;
+  padding-left: 2px;
+}
+
+.dhx_cal_lsection {
+  font-size: 12px;
+}
+
+.dhx_cal_light {
+  width: 210px;
+}
+
+.dhx_cal_larea {
+  width: 200px;
+}
+
+
