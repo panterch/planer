@@ -15,7 +15,7 @@ function random_color(){
 /* some css values that depend on configuration (people)
  * are generated here and rendered directly onto the page */
 function generate_css() {
-  e = new Element('style', {type:"text/css", media:"all"})
+  var e = $('style_planer').update('');
   people.each(function(person, index) {
     var col = random_color();
     // assure different colors for different people
@@ -27,7 +27,6 @@ function generate_css() {
     e.insert(" color: rgb("+col+");");
     e.insert(" }\n");
   });
-  $$('head').first().insert(e);
 }
 
 /* this is the reaction on a filter checkbox click */
@@ -106,6 +105,7 @@ function init_scheduler() {
   scheduler.config.icons_select=["icon_details","icon_delete"]
 
   scheduler.filter_week=function(id, event) {
+    
     return filter.get(event.person);
   }
   scheduler.filter_day=scheduler.filter_week;
@@ -131,6 +131,11 @@ function load_data() {
   //   scheduler.addEvent({ start_date:new Date(2010,0,21,9,0), end_date:new Date(2010,0,21,11,0), person:person, task:'' });
   //   scheduler.addEvent({ start_date:new Date(2010,0,21,12,0), end_date:new Date(2010,0,21,17,0), person:person, task:'' });
   // });
+  // var dp = new dataProcessor("/events.xml");
+  // dp.init(scheduler);
+  // dp.setTransactionMode("POST",false);
+
+
 }
 
 function init_stats() {
@@ -144,10 +149,26 @@ function init_stats() {
   recalculate_stats();
 }
 
+function init_slider() {
+  var sld = new dhtmlxSlider('slider', 300);
+  sld.setImagePath("/imgs/")
+  sld.init();
+  var disco = new PeriodicalExecuter(generate_css, 1);
+  disco.stop();
+
+  sld.attachEvent("onSlideEnd",function(val){
+    disco.stop();
+    if (val > 0) {
+      disco = new PeriodicalExecuter(generate_css, 50/val);
+    }
+  })  
+}
+
 document.observe("dom:loaded", function() {
   generate_css();
   generate_filter();
   init_scheduler();
   load_data();
   init_stats();
+  init_slider();
 });
