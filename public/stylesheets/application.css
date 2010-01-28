@@ -37,6 +37,10 @@ html, body{
   padding-left: 2px;
 }
 
+#disco > div, #disco > a { 
+  float: left;
+}
+
 .dhx_cal_lsection {
   font-size: 12px;
 }
