@@ -149,7 +149,7 @@ function init_stats() {
 
 function init_slider() {
   var sld = new dhtmlxSlider('slider', 330);
-  sld.setImagePath("/imgs/")
+  sld.setImagePath("/images/")
   sld.init();
   var disco = new PeriodicalExecuter(generate_css, 1);
   disco.stop();
