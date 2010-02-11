@@ -11,16 +11,26 @@ class EventsController < ApplicationController
     render :layout => false
   end
 
+  def create
+    change
+  end
+
+  def update
+    change
+  end
+
+
+protected
+
   # wird vom dhtmlx scheduler/calendar frontend
   # via POST aufgerufen, bei Events verändert werden
-  #
   def change
     @mode = params["!nativeeditor_status"]
     @sid  = params[:id] # ''sent-id''
     case @mode
-      when "inserted"; create
-      when "deleted";  destroy
-      when "updated";  update
+      when "inserted"; create_event
+      when "deleted";  destroy_event
+      when "updated";  update_event
     end
     respond_to do |wants|
       wants.xml { 
@@ -29,7 +39,6 @@ class EventsController < ApplicationController
     end
   end
 
-protected
   def update_attributes
     @event.update_attributes!(
       #
@@ -49,17 +58,17 @@ protected
     )
   end
 
-  def create
+  def create_event
     @event = Event.new
     update_attributes
   end
 
-  def update
+  def update_event
     @event=Event.find @sid
     update_attributes
   end
 
-  def destroy
+  def destroy_event
     @event=Event.find @sid
     @event.destroy
   end

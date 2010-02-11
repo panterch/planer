@@ -1,0 +1,5 @@
+xml.instruct! :xml, :version=>"1.0" 
+
+xml.data do
+  xml.action( :type => @mode, :sid => @sid, :tid => @event.id ) 
+end
