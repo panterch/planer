@@ -13,6 +13,7 @@ html, body{
 
 #control {
   position: fixed;
+  width: 100%;
   bottom: 0px;
   background-color: white;
 }
@@ -23,7 +24,6 @@ html, body{
 
 #control label {
   display: block;
-  width: 80px;
   height: 20px;
   float: left;
   padding-left: 2px;
@@ -46,11 +46,11 @@ html, body{
 }
 
 .dhx_cal_light {
-  width: 210px;
+  width: 250px;
 }
 
 .dhx_cal_larea {
-  width: 200px;
+  width: 240px;
 }
 
 
