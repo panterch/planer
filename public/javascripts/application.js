@@ -125,7 +125,12 @@ function init_update_run() {
   scheduler.attachEvent("onXLE",          update_run);
   scheduler.attachEvent("onEventAdded",   update_run);
   scheduler.attachEvent("onEventChanged", update_run);
-  scheduler.attachEvent("onViewChange",   update_run);
+  scheduler.attachEvent("onBeforeViewChange",   function() {
+    filter_who =  null;
+    filter_what = null;
+    return true;
+  });
+  scheduler.attachEvent("onViewChange", update_run);
 }
 
 
@@ -167,7 +172,7 @@ function update_filter() {
   who.each(function(person, index) {
     var checked = filter_who.get(person);
     if (null == checked) { checked = true; }
-    var label = new Element('label', { class: person});
+    var label = new Element('label', { 'class': person});
     var check = new Element('input', {type:"checkbox", "checked":checked, name:person});
     check.observe("change", filter_who_to_view);
     label.update(person+' ('+stats.get(person)+'h): ');
@@ -183,7 +188,7 @@ function update_filter() {
   what.each(function(task, index) {
     var checked = filter_what.get(task);
     if (null == checked) { checked = true; }
-    var label = new Element('label', { class: task});
+    var label = new Element('label', { 'class': task});
     var check = new Element('input', {type:"checkbox", "checked":checked, name:task});
     check.observe("change", filter_what_to_view);
     label.update(task+' ('+stats.get(task)+'h): ');
