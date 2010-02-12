@@ -1,6 +1,12 @@
 var scheduler = null;
 var people = ['seb', 'maa', 'pho', 'geo', 'tam', 'sym']
-var filter = new Hash();
+
+var events = []; // the events currently in the scope of the user
+var who  = [];   // persons working on events
+var what = [];   // tasks on events
+var filter = new Hash(); // which persons & tasks to display
+var stats  = new Hash(); // how many working houres planed
+
 people.each(function(person) { filter.set(person, true); });
 
 /* random color from http://colors.simplificator.com/ */
@@ -33,51 +39,11 @@ function generate_css() {
 function filter_view() {
   filter.set(this.name, this.checked);
   scheduler.update_view();
-  recalculate_stats();
-}
-
-function generate_filter() {
-  people.each(function(person, index) {
-    var label = new Element('label', { class: person});
-    var check = new Element('input', {type:"checkbox", checked:"true", name:person});
-    check.observe("change", filter_view);
-    label.update(person+': ');
-    label.insert(check);
-    $('filter').insert(label);
-  });
+  // recalculate_stats();
 }
 
 function update_event_text(event_id, event) {
   event.text = event.person + "\n" + event.task;
-}
-
-function recalculate_stats() {
-  var workload = new Hash();
-  var projects = new Hash();
-  var total = 0;
-  scheduler.get_visible_events().each(function(e) {
-    var hours = (e.end_date.getTime() - e.start_date.getTime()) / 3600000.0
-    workload.set(e.person, hours + (workload.get(e.person) || 0));
-    projects.set(e.task, hours + (projects.get(e.task) || 0));
-    total = total + hours;
-  });
-
-  var dl = new Element('dl');
-  people.each(function(p) {
-    dl.insert(new Element('dt', { class: p }).update(p+':'));
-    dl.insert(new Element('dd', { class: p }).update((workload.get(p) || 0)+'h'));
-    });
-  dl.insert(new Element('dt').update('Total: '));
-  dl.insert(new Element('dd').update(total+'h'));
-  $('workload').update(dl);
-
-  var dl = new Element('dl');
-  projects.each(function(pair) {
-    dl.insert(new Element('dt').update(pair.key+':'));
-    dl.insert(new Element('dd').update(pair.value+'h '));
-    });
-  $('projects').update(dl);
-
 }
 
 function init_scheduler() {
@@ -127,6 +93,7 @@ function init_scheduler() {
   scheduler.init('scheduler_here', null, "workweek");
 }
 
+
 function load_data() {
   scheduler.load("/events.xml");
   var dp = new dataProcessor("/events.xml");
@@ -136,16 +103,6 @@ function load_data() {
 
 }
 
-function init_stats() {
-  scheduler.attachEvent("onBeforeEventDelete", function() {
-      setTimeout('recalculate_stats()', 1000);
-      return true;
-      });
-  scheduler.attachEvent("onEventAdded", recalculate_stats);
-  scheduler.attachEvent("onEventChanged", recalculate_stats);
-  scheduler.attachEvent("onViewChange", recalculate_stats);
-  recalculate_stats();
-}
 
 function init_slider() {
   var sld = new dhtmlxSlider('slider', 330);
@@ -162,11 +119,84 @@ function init_slider() {
   })  
 }
 
+function init_update_run() {
+  scheduler.attachEvent("onBeforeEventDelete", function() {
+      setTimeout('update_run()', 1000);
+      return true;
+      });
+  scheduler.attachEvent("onXLE",          update_run);
+  scheduler.attachEvent("onEventAdded",   update_run);
+  scheduler.attachEvent("onEventChanged", update_run);
+  scheduler.attachEvent("onViewChange",   update_run);
+}
+
+
+function update_run() {
+  update_events_who_and_what();
+  update_stats();
+  update_filter();
+}
+
+function update_events_who_and_what() {
+  events = scheduler.getEvents(scheduler._min_date, scheduler._max_date);
+  who  = [];
+  what = [];
+  events.each(function(e) {
+    who.push(e.person);
+    what.push(e.task);
+    });
+  who = who.uniq();
+  what = what.uniq();
+}
+
+
+function update_stats() {
+  stats = new Hash();
+  events.each(function(e) {
+    var hours = (e.end_date.getTime() - e.start_date.getTime()) / 3600000.0
+    stats.set(e.person, hours + (stats.get(e.person) || 0));
+    stats.set(e.task, hours + (stats.get(e.task) || 0));
+  });
+}
+
+
+function update_filter() {
+  var new_filter = new Hash();
+
+  $('filter_who').innerHTML = '';
+  who.each(function(person, index) {
+    var checked = filter.get(person);
+    if (null == checked) { checked = true; }
+    var label = new Element('label', { class: person});
+    var check = new Element('input', {type:"checkbox", "checked":checked, name:person});
+    check.observe("change", filter_view);
+    label.update(person+' ('+stats.get(person)+'h): ');
+    label.insert(check);
+    $('filter_who').insert(label);
+    new_filter.set(person, checked);
+  });
+
+  $('filter_what').innerHTML = '';
+  what.each(function(task, index) {
+    var checked = filter.get(task);
+    if (null == checked) { checked = true; }
+    var label = new Element('label', { class: task});
+    var check = new Element('input', {type:"checkbox", "checked":checked, name:task});
+    check.observe("change", filter_view);
+    label.update(task+' ('+stats.get(task)+'h): ');
+    label.insert(check);
+    $('filter_what').insert(label);
+    new_filter.set(task, checked);
+  });
+  filter = new_filter;
+}
+
+
 document.observe("dom:loaded", function() {
-  generate_css();
-  generate_filter();
+//  generate_css();
+//  generate_filter();
   init_scheduler();
+  init_update_run();
   load_data();
-  init_stats();
   init_slider();
 });
