@@ -1,13 +1,11 @@
 var scheduler = null;
-var people = ['seb', 'maa', 'pho', 'geo', 'tam', 'sym']
 
 var events = []; // the events currently in the scope of the user
 var who  = [];   // persons working on events
 var what = [];   // tasks on events
-var filter = new Hash(); // which persons & tasks to display
+var filter_who  = null; // which persons to display
+var filter_what = null; // which tasks to display
 var stats  = new Hash(); // how many working houres planed
-
-people.each(function(person) { filter.set(person, true); });
 
 /* random color from http://colors.simplificator.com/ */
 function random_color(){
@@ -36,10 +34,14 @@ function generate_css() {
 }
 
 /* this is the reaction on a filter checkbox click */
-function filter_view() {
-  filter.set(this.name, this.checked);
+function filter_who_to_view() {
+  filter_who.set(this.name, this.checked);
   scheduler.update_view();
-  // recalculate_stats();
+}
+
+function filter_what_to_view() {
+  filter_what.set(this.name, this.checked);
+  scheduler.update_view();
 }
 
 function update_event_text(event_id, event) {
@@ -73,8 +75,11 @@ function init_scheduler() {
   scheduler.config.icons_select=["icon_details","icon_delete"]
 
   scheduler.filter_week=function(id, event) {
-    
-    return filter.get(event.person);
+    if (null == filter_who || null == filter_what) { 
+      return true; 
+    }
+    return filter_who.get(event.person) &&
+           filter_what.get(event.task);
   }
   scheduler.filter_day=scheduler.filter_week;
 
@@ -161,34 +166,38 @@ function update_stats() {
 
 
 function update_filter() {
+  if (null == filter_who) { filter_who = new Hash() }
   var new_filter = new Hash();
 
   $('filter_who').innerHTML = '';
   who.each(function(person, index) {
-    var checked = filter.get(person);
+    var checked = filter_who.get(person);
     if (null == checked) { checked = true; }
     var label = new Element('label', { class: person});
     var check = new Element('input', {type:"checkbox", "checked":checked, name:person});
-    check.observe("change", filter_view);
+    check.observe("change", filter_who_to_view);
     label.update(person+' ('+stats.get(person)+'h): ');
     label.insert(check);
     $('filter_who').insert(label);
     new_filter.set(person, checked);
   });
+  filter_who = new_filter;
 
+  if (null == filter_what) { filter_what = new Hash() }
+  var new_filter = new Hash();
   $('filter_what').innerHTML = '';
   what.each(function(task, index) {
-    var checked = filter.get(task);
+    var checked = filter_what.get(task);
     if (null == checked) { checked = true; }
     var label = new Element('label', { class: task});
     var check = new Element('input', {type:"checkbox", "checked":checked, name:task});
-    check.observe("change", filter_view);
+    check.observe("change", filter_what_to_view);
     label.update(task+' ('+stats.get(task)+'h): ');
     label.insert(check);
     $('filter_what').insert(label);
     new_filter.set(task, checked);
   });
-  filter = new_filter;
+  filter_what = new_filter;
 }
 
 
