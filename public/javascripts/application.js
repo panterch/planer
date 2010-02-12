@@ -6,34 +6,15 @@ var what = [];   // tasks on events
 var filter_who  = null; // which persons to display
 var filter_what = null; // which tasks to display
 var stats  = new Hash(); // how many working houres planed
+var palette = new Hash();
 
-/* random color from http://colors.simplificator.com/ */
-function random_color(){
-  var col = new Array(3);
-  col[0] = parseInt(Math.random() * 255);
-  col[1] = parseInt(Math.random() * 255);
-  col[2] = parseInt(Math.random() * 255);
-  return col;
-}
 
-/* some css values that depend on configuration (people)
- * are generated here and rendered directly onto the page */
-function generate_css() {
-  var e = $('style_planer').update('');
-  people.each(function(person, index) {
-    var col = random_color();
-    // assure different colors for different people
-    col[2] = Math.floor(index * 255.0 / people.length);
-    e.insert(".dhx_cal_event."+person+" div, ."+person);
-    e.insert(" { background-color: rgb("+col+");");
-    // assure readability of foreground
-    col[1] = col[1] > 120 ? 0 : 250;
-    e.insert(" color: rgb("+col+");");
-    e.insert(" }\n");
-  });
-}
 
-/* this is the reaction on a filter checkbox click */
+
+/********************************************************************
+ * dhtmlx scheduler configuration and utility methods
+ *******************************************************************/
+
 function filter_who_to_view() {
   filter_who.set(this.name, this.checked);
   scheduler.update_view();
@@ -98,7 +79,6 @@ function init_scheduler() {
   scheduler.init('scheduler_here', null, "workweek");
 }
 
-
 function load_data() {
   scheduler.load("/events.xml");
   var dp = new dataProcessor("/events.xml");
@@ -109,20 +89,33 @@ function load_data() {
 }
 
 
+
+
+/********************************************************************
+ * dhtmlx slider configuration and utility methods
+ *******************************************************************/
+
 function init_slider() {
   var sld = new dhtmlxSlider('slider', 330);
   sld.setImagePath("/images/")
   sld.init();
-  var disco = new PeriodicalExecuter(generate_css, 1);
+  var disco = new PeriodicalExecuter(reset_palette, 1);
   disco.stop();
 
   sld.attachEvent("onSlideEnd",function(val){
     disco.stop();
     if (val > 0) {
-      disco = new PeriodicalExecuter(generate_css, 50/val);
+      disco = new PeriodicalExecuter(reset_palette, 50/val);
     }
   })  
 }
+
+
+
+
+/********************************************************************
+ * update methods: recalculate values on event changes
+ *******************************************************************/
 
 function init_update_run() {
   scheduler.attachEvent("onBeforeEventDelete", function() {
@@ -140,6 +133,7 @@ function update_run() {
   update_events_who_and_what();
   update_stats();
   update_filter();
+  update_palette();
 }
 
 function update_events_who_and_what() {
@@ -200,12 +194,54 @@ function update_filter() {
   filter_what = new_filter;
 }
 
+function update_palette() {
+  var palette_touched = false;
+  who.each(function(person, i) {
+    if (palette.get(person)) { return; }
+    palette_touched = true;
+    palette.set(person, random_color());
+  });
+  if (!palette_touched) { return; }
+
+  var e = $('style_planer').update('');
+  palette.each(function(person_color) {
+    name = person_color[0];
+    col  = person_color[1];
+    e.insert(".dhx_cal_event."+name+" div, ."+name);
+    e.insert(" { background-color: rgb("+col+");");
+    // assure readability of foreground
+    col = col.clone();
+    col[1] = col[1] > 120 ? 0 : 250;
+    e.insert(" color: rgb("+col+");");
+    e.insert(" }\n");
+  });
+}
+
+function reset_palette() {
+  palette = new Hash();
+  update_palette();
+}
+
+
+
+
+/********************************************************************
+ * initialization & utilities 
+ *******************************************************************/
 
 document.observe("dom:loaded", function() {
-//  generate_css();
-//  generate_filter();
   init_scheduler();
   init_update_run();
   load_data();
   init_slider();
 });
+
+/* random color from http://colors.simplificator.com/ */
+function random_color(){
+  var col = new Array(3);
+  col[0] = parseInt(Math.random() * 255);
+  col[1] = parseInt(Math.random() * 255);
+  col[2] = parseInt(Math.random() * 255);
+  return col;
+}
+
